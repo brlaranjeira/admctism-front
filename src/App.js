@@ -1,28 +1,23 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import PrivateRoute from './components/PrivateRoute'
+import ScreenSolicitaCompra from './compras/ScreenSolicitaCompra'
+import ScreenViewCompras from './compras/ScreenViewCompras'
+import ScreenLogin from './login/ScreenLogin';
+import { BrowserRouter , Switch , Route} from 'react-router-dom';
 
 class App extends Component {
-  render() {
-    return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-        </header>
-      </div>
-    );
-  }
-}
 
+  render() {
+    return <BrowserRouter>
+      <Switch>
+        <PrivateRoute groups={[10001,10002]} exact path="/compras/solicita/" component={() => <ScreenSolicitaCompra/>} />
+        <PrivateRoute groups={[10001,10002]} exact path="/compras/all/" component={() => <ScreenViewCompras/>} />
+        <Route exact path="/login/" component={() => <ScreenLogin/>} />
+        <Route exact path="*" component={() => <ScreenLogin/>} />
+      </Switch>
+    </BrowserRouter>;
+  }
+
+
+}
 export default App;

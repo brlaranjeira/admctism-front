@@ -1,0 +1,6 @@
+.alertXpto {
+    position: fixed;
+    top: 30px;
+    z-index: 1;
+    min-width: 45%;
+}
