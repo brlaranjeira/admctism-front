@@ -123,7 +123,7 @@ class ScreenViewCompras extends Component {
     render () {
         let alert = null;
         if (this.state.mensagem !== undefined) {
-            alert = <Alert bsClass={'alertXpto alert'} bsStyle={this.state.mensagem.type}>
+            alert = <Alert bsClass={'alertDialog alert'} bsStyle={this.state.mensagem.type}>
                 <div className={'d-flex justify-content-between'}>
                     <div>ADMCTISM</div>
                     <div onClick={() => this.setState({mensagem:undefined})} ><i className="clickable fas fa-times"></i></div>

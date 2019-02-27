@@ -23,5 +23,4 @@ class PrivateRoute extends Component {
     render() {
         return this.route;
     }
-}
-export default PrivateRoute;
+} export default PrivateRoute;

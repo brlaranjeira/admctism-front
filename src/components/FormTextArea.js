@@ -12,9 +12,12 @@ class FormTextArea extends Component {
         const rows = this.props.rows !== undefined ? this.props.rows : 10;
         const disabled = this.props.disabled !== undefined && this.props.disabled;
         const required = this.props.required !== undefined && this.props.required !== false;
-        const warningMessage = this.props.warningMessage !== undefined ?
-            this.props.warningMessage :
-            ('Campo ' + title + ' não informado');
+        let warningMessage;
+        if (this.props.warningMessage !== undefined) {
+            warningMessage = this.props.warningMessage;
+        } else {
+            warningMessage = 'Campo ' + title + ' não informado';
+        }
 
         const label = title !== undefined ? <label htmlFor={name}>{title}</label> : null;
         const textAreaId = name.endsWith('[]') ?
@@ -41,4 +44,3 @@ class FormTextArea extends Component {
     }
 }
 export default FormTextArea;
-//<textarea class="form-control" name="justificativa" id="justificativa" cols="30" rows="10"></textarea

@@ -3,6 +3,7 @@ import StringMask from "string-mask";
 
 class FormInput extends Component {
 
+    //numero sequencial para nomear componentes sem propriedade name
     static idNum = 0;
     static getNextIdNum() {
         const ret = FormInput.idNum;
@@ -16,19 +17,33 @@ class FormInput extends Component {
         const value = this.props.value !== undefined ? this.props.value : '';
         const small = this.props.small !== undefined ? <small>{this.props.small}</small> : null;
         const type = this.props.type !== undefined ? this.props.type : 'text';
+        const inputId = name.endsWith('[]') ? name.substr(0,name.length-2) : name;
+        const disabled = this.props.disabled !== undefined && this.props.disabled;
+        const required = this.props.required !== undefined && this.props.required !== false;
+        let warningMessage;
+        if (this.props.warningMessage !== undefined) {
+            warningMessage = this.props.warningMessage;
+        } else {
+            warningMessage = 'Campo ' + title + ' não informado';
+        }
+
+        /**
+         * MASK
+         */
         const mask = this.props.mask !== undefined ? this.props.mask : undefined;
         let onChange;
         if (mask === undefined) {
             onChange = this.props.onChange !== undefined ? this.props.onChange : null;
         } else {
-            onChange = (evt) => {
+            onChange = evt => {
                 let pattern = mask;
                 let rev = pattern.startsWith('R');
                 if (rev) {
                     pattern = pattern.substr(1);
                 }
                 const exclusiveChars = /[09#AaSUL]/g;
-                const toRemove = Array.from(pattern.replace(exclusiveChars,'')).filter( (v,i,self) => self.indexOf(v) === i );
+                let toRemove = Array.from(pattern.replace(exclusiveChars,''));
+                toRemove = toRemove.filter( (v,i,self) => self.indexOf(v) === i );
                 toRemove.forEach( c => {
                     while (evt.target.value.includes(c)) {
                         evt.target.value = evt.target.value.replace(c,'');
@@ -43,15 +58,10 @@ class FormInput extends Component {
                 this.props.onChange(evt);
             }
         }
-        const inputId = name.endsWith('[]') ?
-            name.substr(0,name.length-2) : name;
-        const disabled = this.props.disabled !== undefined && this.props.disabled;
 
-        const required = this.props.required !== undefined && this.props.required !== false;
-        const warningMessage = this.props.warningMessage !== undefined ?
-            this.props.warningMessage :
-            ('Campo ' + title + ' não informado');
-
+        /**
+         * COMPONENTES
+         */
         const label = title !== undefined ? <label htmlFor={name}>{title} {small} </label> : null;
         const input = <input
             mask={mask}
@@ -65,10 +75,6 @@ class FormInput extends Component {
             name={this.props.name}
             id={inputId} />;
 
-            return <div className={'form-group'}>
-            {label}
-            {input}
-        </div>;
+        return <div className={'form-group'}> {label} {input}  </div>;
     }
-}
-export default FormInput;
+} export default FormInput;

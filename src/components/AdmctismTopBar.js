@@ -17,12 +17,7 @@ class AdmctismTopBar extends Component {
                 ]
             }
 
-        ]/*[
-            {label: 'Compras', itens: [
-                {'label': 'Solicitar', command: () => alert('solicitar')},
-                {'label': 'Visualizar', command: () => alert('ver')}
-            ]}
-        ]*/
+        ]
     }
     logoutBtn = () => {
         JWT.logout();
@@ -36,5 +31,4 @@ class AdmctismTopBar extends Component {
             </Menubar>
         </div>;
     }
-}
-export default AdmctismTopBar;
+} export default AdmctismTopBar;

@@ -42,8 +42,8 @@ class ScreenSolicitaCompra extends Component {
         };
         this.state=Object.assign({},this.initialState);
         this.handleChange=this.handleChange.bind(this);
-        this.handleOrcamentoChange=this.handleOrcamentoChange.bind(this);
         this.handleItemChange=this.handleItemChange.bind(this);
+        this.handleOrcamentoChange=this.handleOrcamentoChange.bind(this);
         this.addItem=this.addItem.bind(this);
         this.deleteItem=this.deleteItem.bind(this);
         this.finalizaPedido=this.finalizaPedido.bind(this);
@@ -52,23 +52,48 @@ class ScreenSolicitaCompra extends Component {
     handleChange( propName , event ) {
         let valor = event.target.value;
         const obj = {[propName]: valor};
-        /**
-         * regras especificas do formulario
-         */
-        if (propName === 'vincProj' && event.target.value === 'n') {
+        //regras especificas para vinculacao com projeto
+        if (propName.toLowerCase() === 'vincproj' && event.target.value.toLowerCase() === 'n') {
             obj.codProj = '';
         }
-
         this.setState(obj);
     }
 
     handleItemChange( itemIdx , propName , evt ) {
+        this.setState( prev => {
+           const itens = prev.itens.map( (it,idx) => {
+               if ( idx !== itemIdx ) {
+                   return it;
+               }
+               it[propName] = evt.target.value;
+               return it;
+           });
+           return {itens:itens};
+        });
+        /*
         const itens = this.state.itens;
         const itemAtual = itens[itemIdx];
         itemAtual[propName] = evt.target.value;
         this.setState({itens:itens});
+        */
     }
+
     handleOrcamentoChange( itemIdx , orcamentoIdx , propName , evt ) {
+        this.setState( prev => {
+            const itens = prev.itens.map( (it,idx) => {
+                if (itemIdx === idx) {
+                    return it;
+                }
+                it.orcamentos = it.orcamentos.map( (orc,idxorc) => {
+                    if (idxorc === orcamentoIdx) {
+                        return orc;
+                    }
+                    orc[propName] = evt.target.value;
+                });
+            });
+            return {itens:itens};
+        });
+        /*
         const itens = this.state.itens;
         const itemAtual = itens[itemIdx];
         if (itemAtual.orcamentos === undefined) {
@@ -82,24 +107,33 @@ class ScreenSolicitaCompra extends Component {
         itemAtual.orcamentos[orcamentoIdx] = orcamentoAtual;
         itens[itemIdx] = itemAtual;
         this.setState({itens:itens});
-        //
+        */
     }
+
     addItem() {
-        let itens = this.state.itens;
-        itens.push({});
-        this.setState({itens:itens}, _ => window.scrollTo(0,document.body.scrollHeight));
+        this.setState( prev => {
+            return {itens:prev.itens.concat({})};
+        }, () => window.scrollTo(0,document.body.scrollHeight));
     }
 
     deleteItem( idx ) {
-        let itens = this.state.itens.filter( (el,i) => {
+        this.setState( prev => {
+           const itens = prev.itens.filter( (item,i) => idx !== i );
+           if (itens.length === 0) {
+               itens.push({})
+           }
+           return {itens:itens};
+        });
+        /*let itens = this.state.itens.filter( (el,i) => {
             return idx !== i;
         });
         itens.length === 0 && itens.push({});
-        this.setState({itens:itens});
+        this.setState({itens:itens});*/
     }
 
-
     finalizaPedido() {
+
+        //VALIDACAO
         const errorMessages = [];
         document.querySelectorAll('[required]')
             .forEach( elm => {
@@ -131,7 +165,7 @@ class ScreenSolicitaCompra extends Component {
         };
         const fd = new FormData();
         const mapNamesToCount = [];
-        Object.entries(this.state).filter( ([k,v]) => k !== 'mensagem').forEach( ([k,v]) => {
+        Object.entries(this.state).filter( ([k,v]) => k !== 'mensagem').forEach(([k,v]) => {
             if (k === 'itens') {
                 v.forEach( item => {
                     Object.entries(item).forEach(([item_k,item_v]) => {
@@ -140,17 +174,17 @@ class ScreenSolicitaCompra extends Component {
                             item_v.forEach( orc => {
                                 Object.entries(orc).forEach(([orc_k,orc_v]) => {
                                     addToFormData(fd,orc_k+'[]',orc_v,mapNamesToCount);
-                                } )
+                                } );
                             } );
                         } else {
                             addToFormData(fd,item_k+'[]',item_v,mapNamesToCount);
                         }
-                    })
-                } )
+                    });
+                } );
             } else  {
                 addToFormData(fd,k,v,mapNamesToCount);
             }
-        } );
+        });
 
 
         Request.post('/admctism/ajax/compras/solicita.php',fd, ({data}) => {
@@ -167,9 +201,20 @@ class ScreenSolicitaCompra extends Component {
         });
     }
 
-
-
     render() {
+
+        const getContainerForItem = (item,idx) => {
+            const nIdx = idx;
+            const nItem = this.state.itens[nIdx];
+            return <SolicitaItem
+                numItens={this.state.itens.length}
+                onDelete={() => {this.deleteItem(nIdx);}}
+                onChange={ ( pName , evt ) => this.handleItemChange( nIdx , pName , evt ) }
+                onChangeOrcamento={ ( orcIdx , propName , evt ) => {this.handleOrcamentoChange(nIdx, orcIdx , propName, evt)} }
+                item={nItem}
+                idx={nIdx} />;
+        };
+
 
         const tiposSolicitacao = this.state.tiposSolicitacao === undefined ? [] : this.state.tiposSolicitacao.map( t => {
             return {id:t.id,name:t.descricao};
@@ -179,11 +224,13 @@ class ScreenSolicitaCompra extends Component {
         } );
         const snOptions = [ {id:'s',name:'Sim'} , {id:'n',name:'Não'} ];
 
-        const codProjContainer = this.state.vincProj === 's' ?
-            <Column><FormInput required onChange={evt => this.handleChange('codProj', evt)} value={this.state.codProj} title={'Código do Projeto'} name={'codProj'}/></Column> : null;
+
+
+
+        //COMPONENTES
         let alert = null;
         if (this.state.mensagem !== undefined) {
-            alert = <Alert bsClass={'alertXpto alert'} bsStyle={this.state.mensagem.type}>
+            alert = <Alert bsClass={'alertDialog alert'} bsStyle={this.state.mensagem.type}>
                 <div className={'d-flex justify-content-between'}>
                     <div>ADMCTISM</div>
                     <div onClick={() => this.setState({mensagem:undefined})} ><i className="clickable fas fa-times"></i></div>
@@ -192,6 +239,28 @@ class ScreenSolicitaCompra extends Component {
                 { Array.isArray(this.state.mensagem.text) && this.state.mensagem.text.map( m => <p>{m}</p> ) || this.state.mensagem.text }
             </Alert>;
         }
+        let codProjContainer;
+        if (this.state.vincProj === 's') {
+            codProjContainer = <Column><FormInput required onChange={evt => this.handleChange('codProj', evt)} value={this.state.codProj} title={'Código do Projeto'} name={'codProj'}/></Column>;
+        } else {
+            codProjContainer = null;
+        }
+        const selectTipoSolicitacao = <FormSelect required onChange={evt => this.handleChange('tipoSolicitacao', evt)} value={this.state.tipoSolicitacao} title={'Tipo de Solicitação'} name={'tipo-solicitacao'} options={tiposSolicitacao} />;
+        const selectTipoDespesa = <FormSelect required onChange={evt => this.handleChange('tipoDespesa', evt)} value={this.state.tipoDespesa} title={'Classificação da Despesa'} name={'tipo-despesa'} options={tiposDespesa} />;
+        const selectDespesaRecorrente = <FormSelect required onChange={evt => this.handleChange('despesaRecorrente', evt)} value={this.state.despesaRecorrente} title={'Despesa Recorrente'} name={'despesa-recorrente'} options={snOptions} />;
+        const rowInfoProjeto = <Row>
+            <Column>
+                <FormSelect required onChange={evt => this.handleChange('vincProj', evt)} value={this.state.vincProj} title={'Despesa Vinculada a Projeto?'} name={'vinc-proj'} options={[{id:'n',name:'Não'},{id:'s',name:'Sim'}]} />
+            </Column>
+            {codProjContainer}
+        </Row>;
+        const textAreaJustificativa = <FormTextArea required onChange={evt => this.handleChange('justificativa', evt)} value={this.state.justificativa} title={'Justificativa'} name={'justificativa'}/>;
+        const inputOutroArq = <FormInput required={this.state.tipoSolicitacao === 'displ' } type={'file'} small={this.state.tipoSolicitacao === 'displ' ? undefined : '(opcional)'} onChange={evt => this.handleChange('arq_outroarq', evt)} value={this.state.arq_outroarq} title={'Arquivo adicional'} name={'arq_outroarq'} />;
+        const inputObservacoes = <FormInput small={'(opcional)'} onChange={evt => this.handleChange('obs', evt)} value={this.state.obs} title={'Observacoes'}  />;
+        const itens = this.state.itens.map( getContainerForItem );
+        const btnNovoItem = <button onClick={() => this.addItem()} className={'btn btn-primary btn-sm my-2'}>Novo Item&nbsp;<i className={"fas fa-plus"}></i></button>;
+        const btnFinalizar = <button onClick={this.finalizaPedido} className={'btn btn-primary btn-block'}>FINALIZAR</button>;
+
         return (
             <div>
                 <div className="container">
@@ -199,49 +268,29 @@ class ScreenSolicitaCompra extends Component {
                     {alert}
                     <TabPane id={'tabs-solicitacao'}>
                         <Tab title={'Informacoes Gerais'} id={'info-gerais'}>
-                            <FormSelect required onChange={evt => this.handleChange('tipoSolicitacao', evt)} value={this.state.tipoSolicitacao} title={'Tipo de Solicitação'} name={'tipo-solicitacao'} options={tiposSolicitacao} />
-                            <FormSelect required onChange={evt => this.handleChange('tipoDespesa', evt)} value={this.state.tipoDespesa} title={'Classificação da Despesa'} name={'tipo-despesa'} options={tiposDespesa} />
-                            <FormSelect required onChange={evt => this.handleChange('despesaRecorrente', evt)} value={this.state.despesaRecorrente} title={'Despesa Recorrente'} name={'despesa-recorrente'} options={snOptions} />
+                            { selectTipoSolicitacao }
+                            { selectTipoDespesa }
+                            { selectDespesaRecorrente }
+                            { rowInfoProjeto }
+                            { textAreaJustificativa }
                             <Row>
                                 <Column>
-                                    <FormSelect required onChange={evt => this.handleChange('vincProj', evt)} value={this.state.vincProj} title={'Despesa Vinculada a Projeto?'} name={'vinc-proj'} options={[{id:'n',name:'Não'},{id:'s',name:'Sim'}]} />
-                                </Column>
-                                {codProjContainer}
-                            </Row>
-                            <FormTextArea required onChange={evt => this.handleChange('justificativa', evt)} value={this.state.justificativa} title={'Justificativa'} name={'justificativa'}/>
-                            <Row>
-                                <Column>
-                                    <FormInput required={this.state.tipoSolicitacao === 'displ' } type={'file'} small={this.state.tipoSolicitacao === 'displ' ? undefined : '(opcional)'} onChange={evt => this.handleChange('arq_outroarq', evt)} value={this.state.arq_outroarq} title={'Arquivo adicional'} name={'arq_outroarq'} />
+                                    { inputOutroArq }
                                 </Column>
                                 <Column>
-                                    <FormInput small={'(opcional)'} onChange={evt => this.handleChange('obs', evt)} value={this.state.obs} title={'Observacoes'}  />
+                                    { inputObservacoes }
                                 </Column>
                             </Row>
                         </Tab>
                         <Tab title={'Listagem de Itens'} id={'listagem'}>
-                            {
-                                this.state.itens.map( (item,idx) => {
-                                    //const nIdx = this.state.itens.length-idx-1;
-                                    const nIdx = idx;
-                                    const nItem = this.state.itens[nIdx];
-                                    return <SolicitaItem
-                                        numItens={this.state.itens.length}
-                                        onDelete={() => {this.deleteItem(nIdx);}}
-                                        onChange={ ( pName , evt ) => this.handleItemChange( nIdx , pName , evt ) }
-                                        onChangeOrcamento={ ( orcIdx , propName , evt ) => {this.handleOrcamentoChange(nIdx, orcIdx , propName, evt)} }
-                                        item={nItem}
-                                        idx={nIdx} />;
-                                } )
-                            }
-                            <button onClick={() => this.addItem()} className={'btn btn-primary btn-sm my-2'}>Novo Item&nbsp;<i className={"fas fa-plus"}></i></button>
+                            { itens } { btnNovoItem }
                         </Tab>
                     </TabPane>
-                    <button onClick={this.finalizaPedido} className={'btn btn-primary btn-block'}>FINALIZAR</button>
+                    { btnFinalizar }
                 </div>
             </div>
         );
     }
 
 
-}
-export default ScreenSolicitaCompra;
+} export default ScreenSolicitaCompra;

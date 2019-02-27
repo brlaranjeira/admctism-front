@@ -31,5 +31,4 @@ class Column extends Component {
         </div>;
     }
 
-}
-export default Column;
+} export default Column;

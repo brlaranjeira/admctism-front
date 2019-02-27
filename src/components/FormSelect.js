@@ -9,33 +9,32 @@ class FormSelect extends Component {
         const onChange = this.props.onChange !== undefined ? this.props.onChange : null;
         const disabled = this.props.disabled !== undefined && this.props.disabled;
         const required = this.props.required !== undefined && this.props.required !== false;
-        const warningMessage = this.props.warningMessage !== undefined ?
-            this.props.warningMessage :
-            ('Campo ' + title + ' não informado');
+        let warningMessage;
+        if (this.props.warningMessage !== undefined) {
+            warningMessage = this.props.warningMessage;
+        } else {
+            warningMessage = 'Campo ' + title + ' não informado';
+        }
+        const selId = name.endsWith('[]') ? name.substr(0,name.length-2) : name;
 
+        /**
+         * COMPONENTS
+         */
         const label = title !== undefined ? <label htmlFor={name}>{title}</label> : null;
-        const selId = name.endsWith('[]') ?
-            name.substr(0,name.length-2) :
-            name;
-
-        //const options = ;
+        const options = this.props.options.map( vl => {
+            return <option value={vl.id}>{vl.name}</option>
+        });
         const select = <select
-            required={required}
-            disabled={disabled}
-            onChange={onChange}
-            warningMessage={warningMessage}
-            value={value !== undefined ? value : ''}
-            className={'form-control'}
-            name={name}
-            id={selId} >
-                { this.props.options.map( vl => {
-                    return <option value={vl.id}>{vl.name}</option>
-                })}
-        </select>;
-        return <div className={'form-group'}>
-            {label}
-            {select}
-        </div>;
+                            required={required}
+                            disabled={disabled}
+                            onChange={onChange}
+                            warningMessage={warningMessage}
+                            value={value}
+                            className={'form-control'}
+                            name={name}
+                            id={selId} >
+                            { options }
+                        </select>;
+        return <div className={'form-group'}> {label} {select} </div>;
     }
-}
-export default FormSelect;
+} export default FormSelect;
