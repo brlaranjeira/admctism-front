@@ -60,54 +60,35 @@ class ScreenSolicitaCompra extends Component {
     }
 
     handleItemChange( itemIdx , propName , evt ) {
+        const evtValue = evt.target.value;
         this.setState( prev => {
            const itens = prev.itens.map( (it,idx) => {
                if ( idx !== itemIdx ) {
                    return it;
                }
-               it[propName] = evt.target.value;
+               it[propName] = evtValue;
                return it;
            });
            return {itens:itens};
         });
-        /*
-        const itens = this.state.itens;
-        const itemAtual = itens[itemIdx];
-        itemAtual[propName] = evt.target.value;
-        this.setState({itens:itens});
-        */
     }
 
     handleOrcamentoChange( itemIdx , orcamentoIdx , propName , evt ) {
+        const evtValue = evt.target.value;
         this.setState( prev => {
-            const itens = prev.itens.map( (it,idx) => {
-                if (itemIdx === idx) {
-                    return it;
-                }
-                it.orcamentos = it.orcamentos.map( (orc,idxorc) => {
-                    if (idxorc === orcamentoIdx) {
-                        return orc;
-                    }
-                    orc[propName] = evt.target.value;
-                });
-            });
-            return {itens:itens};
+            const itens = prev.itens;
+            const itemAtual = itens[itemIdx];
+            if (itemAtual.orcamentos === undefined) {
+                itemAtual.orcamentos=[{}];
+            }
+            while (itemAtual.orcamentos[orcamentoIdx] === undefined) {
+                itemAtual.orcamentos.push({});
+            }
+            const orcamentoAtual = itemAtual.orcamentos[orcamentoIdx];
+            orcamentoAtual[propName] = evtValue;
+            itemAtual.orcamentos[orcamentoIdx] = orcamentoAtual;
+            return {itens:itens.map( (_item,_idx) => _idx === itemIdx ? itemAtual : _item )};
         });
-        /*
-        const itens = this.state.itens;
-        const itemAtual = itens[itemIdx];
-        if (itemAtual.orcamentos === undefined) {
-            itemAtual.orcamentos=[{}];
-        }
-        while (itemAtual.orcamentos[orcamentoIdx] === undefined) {
-            itemAtual.orcamentos.push({});
-        }
-        const orcamentoAtual = itemAtual.orcamentos[orcamentoIdx];
-        orcamentoAtual[propName] = evt.target.value;
-        itemAtual.orcamentos[orcamentoIdx] = orcamentoAtual;
-        itens[itemIdx] = itemAtual;
-        this.setState({itens:itens});
-        */
     }
 
     addItem() {
@@ -124,15 +105,9 @@ class ScreenSolicitaCompra extends Component {
            }
            return {itens:itens};
         });
-        /*let itens = this.state.itens.filter( (el,i) => {
-            return idx !== i;
-        });
-        itens.length === 0 && itens.push({});
-        this.setState({itens:itens});*/
     }
 
     finalizaPedido() {
-
         //VALIDACAO
         const errorMessages = [];
         document.querySelectorAll('[required]')
@@ -140,8 +115,7 @@ class ScreenSolicitaCompra extends Component {
                 if (elm.value.trim() === '') {
                     errorMessages.push(elm.getAttribute('warningMessage'));
                 }
-            }
-        );
+            });
         if (errorMessages.length > 0) {
             this.setState({mensagem:{
                 text: errorMessages,

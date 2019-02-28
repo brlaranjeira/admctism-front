@@ -26,6 +26,21 @@ import './ScreenViewCompras.css';
 
 class ScreenViewCompras extends Component {
 
+    componentDidMount() {
+        Request.get('/admctism/ajax/compras/getall.php',new FormData(), ({data}) => {
+            const compras = JSON.parse(data.compras);
+            compras.forEach(c => {
+                c.usuario = JSON.parse(c.usuario);
+                c.estado = JSON.parse(c.estado);
+                c.tipoDespesa = JSON.parse(c.tipoDespesa);
+                c.tipoSolicitacao = JSON.parse(c.tipoSolicitacao);
+            });
+            this.setState({compras:compras,loading:false});
+        }, (err) => {
+            window.alert(JSON.stringify(err));
+        })
+    }
+
     constructor(props) {
         super(props);
         this.state = {
@@ -36,7 +51,6 @@ class ScreenViewCompras extends Component {
         this.excluiOrcamento=this.excluiOrcamento.bind(this);
         this.addOrcamento=this.addOrcamento.bind(this);
     }
-
 
     showMessage(message,type='success',time=3500) {
         this.setState({ mensagem: {
@@ -73,14 +87,12 @@ class ScreenViewCompras extends Component {
         compra.orcamentos = orcamentos;
         this.setState( (prev,props) => {
             let compras = prev.compras;
-            //const idx = prev.compras.findIndex( c => compra.id);
-            //compras[prev.compras.findIndex( c => compra.id)] = compra;
             compras = compras.map( c => c.id === compra.id ? compra : c );
             return {compras:compras};
-        })
+        });
     }
 
-    deletaCompra(compra) {
+    deletaCompra ( compra ) {
         const user = JWT.getPayload();
         const owner = compra.usuario;
         if (owner.uid == user.username) {
@@ -101,26 +113,8 @@ class ScreenViewCompras extends Component {
         }
     }
 
-
-    componentDidMount() {
-        Request.get('/admctism/ajax/compras/getall.php',new FormData(), ({data}) => {
-            const compras = JSON.parse(data.compras);
-            compras.forEach(c => {
-                c.usuario = JSON.parse(c.usuario);
-                c.estado = JSON.parse(c.estado);
-                c.tipoDespesa = JSON.parse(c.tipoDespesa);
-                c.tipoSolicitacao = JSON.parse(c.tipoSolicitacao);
-            });
-            this.setState({compras:compras,loading:false});
-        }, (err) => {
-            window.alert(JSON.stringify(err));
-        })
-    }
-
-    substrFilter = (v,f) => v.toLowerCase().includes(f.toLowerCase());
-
-
     render () {
+        const substrFilter = (cell , input) => cell.toLowerCase().includes(input.toLowerCase());
         let alert = null;
         if (this.state.mensagem !== undefined) {
             alert = <Alert bsClass={'alertDialog alert'} bsStyle={this.state.mensagem.type}>
@@ -140,8 +134,8 @@ class ScreenViewCompras extends Component {
                 </Dialog>
                 <DataTable autoLayout={true} value={this.state.compras} paginator={true} paginator={true} rows={10} rowsPerPageOptions={[5,10,20]}>
                     <Column field={'id'} header={'Código'} />
-                    <Column sortable={true} filter={true} filterMatchMode='custom' filterFunction={this.substrFilter} field={"usuario.fullName"}  header={'Solicitante'}/>
-                    <Column sortable={true} filter={true} filterMatchMode='custom' filterFunction={this.substrFilter} field="descricao" header={'Descricao'}/>
+                    <Column sortable={true} filter={true} filterMatchMode='custom' filterFunction={substrFilter} field={"usuario.fullName"}  header={'Solicitante'}/>
+                    <Column sortable={true} filter={true} filterMatchMode='custom' filterFunction={substrFilter} field="descricao" header={'Descricao'}/>
                     <Column header={'Valor Médio'} body={(data) => {
                         const orcamentos = JSON.parse(data.orcamentos).map(o => Number.parseFloat(o.valor));
                         const soma = orcamentos.reduce((acc, curr) => acc + curr,0);
