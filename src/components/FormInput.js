@@ -20,6 +20,9 @@ class FormInput extends Component {
         const inputId = name.endsWith('[]') ? name.substr(0,name.length-2) : name;
         const disabled = this.props.disabled !== undefined && this.props.disabled;
         const required = this.props.required !== undefined && this.props.required !== false;
+        const styleInput = this.props.styleInput !== undefined ? this.props.styleInput : null;
+        const styleLabel = this.props.styleLabel !== undefined ? this.props.styleLabel : null;
+        const style = this.props.style !== undefined ? this.props.style : null;
         let warningMessage;
         if (this.props.warningMessage !== undefined) {
             warningMessage = this.props.warningMessage;
@@ -62,7 +65,7 @@ class FormInput extends Component {
         /**
          * COMPONENTES
          */
-        const label = title !== undefined ? <label htmlFor={name}>{title} {small} </label> : null;
+        const label = title !== undefined ? <label style={styleLabel} htmlFor={name}>{title} {small} </label> : null;
         const input = <input
             mask={mask}
             warningMessage={warningMessage}
@@ -73,8 +76,9 @@ class FormInput extends Component {
             value={value}
             className={'form-control'}
             name={this.props.name}
+            style={styleInput}
             id={inputId} />;
 
-        return <div className={'form-group'}> {label} {input}  </div>;
+        return <div style={style} className={'form-group'}> {label} {input}  </div>;
     }
 } export default FormInput;

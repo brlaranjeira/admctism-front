@@ -50,6 +50,7 @@ class ScreenViewCompras extends Component {
         };
         this.excluiOrcamento=this.excluiOrcamento.bind(this);
         this.addOrcamento=this.addOrcamento.bind(this);
+        this.onCompraChange=this.onCompraChange.bind(this);
     }
 
     showMessage(message,type='success',time=3500) {
@@ -113,6 +114,24 @@ class ScreenViewCompras extends Component {
         }
     }
 
+    onCompraChange( compra , propName , evt ) {
+        const evtValue = evt.target.value;
+        this.setState( prev => {
+            //const indice = prev.compras.findIndex(c => c.id === compraId);
+            const compras = prev.compras.map( c => {
+                if (c.id === compra.id) {
+                    c[propName] = evtValue;
+                }
+                return c;
+            });
+            //const compra = compras[indice];
+            return {
+                compras:compras,
+                //compraDialog: compra
+            };
+        });
+    }
+
     render () {
         const substrFilter = (cell , input) => cell.toLowerCase().includes(input.toLowerCase());
         let alert = null;
@@ -130,7 +149,11 @@ class ScreenViewCompras extends Component {
         if (!this.state.loading) {
             content = <div className='content-section implementation'>
                 <Dialog style={{width:'80%'}} onHide={() => this.setState({compraDialog:null})} visible={this.state.compraDialog != null} header={'Detalhes da Compra #' + (this.state.compraDialog !== null ? this.state.compraDialog.id : '' )} modal={true}>
-                    <CompraDialog addOrcamento={(compra,orcamento,message,success) => {this.addOrcamento(compra , orcamento , message , success)}} excluiOrcamento={ ( orcamento ) => this.excluiOrcamento(this.state.compraDialog,orcamento)} compra={this.state.compraDialog}/>
+                    <CompraDialog
+                        addOrcamento={(compra,orcamento,message,success) => {this.addOrcamento(compra , orcamento , message , success)}}
+                        excluiOrcamento={ ( orcamento ) => this.excluiOrcamento(this.state.compraDialog,orcamento)}
+                        onPropChange={(propName,evt)=>{this.onCompraChange(this.state.compraDialog,propName,evt)}}
+                        compra={this.state.compraDialog}/>
                 </Dialog>
                 <DataTable autoLayout={true} value={this.state.compras} paginator={true} paginator={true} rows={10} rowsPerPageOptions={[5,10,20]}>
                     <Column field={'id'} header={'Código'} />

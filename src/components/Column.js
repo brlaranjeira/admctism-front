@@ -13,15 +13,15 @@ class Column extends Component {
         }
         //md
         if (this.props.mdSize !== undefined) {
-            cl += ' col-md-' + this.props.smSize;
+            cl += ' col-md-' + this.props.mdSize;
         }
         //lg
         if (this.props.lgSize !== undefined) {
-            cl += ' col-lg-' + this.props.smSize;
+            cl += ' col-lg-' + this.props.lgSize;
         }
         //xl
         if (this.props.xlSize !== undefined) {
-            cl += ' col-xl-' + this.props.smSize;
+            cl += ' col-xl-' + this.props.xlSize;
         }
         if (this.props.colClass !== undefined) {
             cl += ' ' + this.props.colClass;

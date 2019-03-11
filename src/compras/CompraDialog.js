@@ -14,9 +14,19 @@ import JWT from "../utils/JWT";
 import BoardNovoOrcamento from "./BoardNovoOrcamento";
 import { Dialog } from "primereact/dialog";
 import {Alert} from "react-bootstrap";
+import SpanEditavel from "./SpanEditavel";
 
 class CompraDialog extends Component {
 
+
+    componentDidMount() {
+        Request.get('/admctism/ajax/compras/gettipossolicitacao.php',new FormData(), ({data}) => {
+            this.setState({tiposSolicitacao: JSON.parse(data.tipos)});
+        });
+        Request.get('/admctism/ajax/compras/gettiposdespesa.php',new FormData(), ({data}) => {
+            this.setState({tiposDespesa: JSON.parse(data.tipos)});
+        });
+    }
 
     constructor(props) {
         super(props);
@@ -26,6 +36,7 @@ class CompraDialog extends Component {
         this.showMessage = this.showMessage.bind(this);
         this.addOrcamento = this.addOrcamento.bind(this);
         this.excluiOrcamento = this.excluiOrcamento.bind(this);
+        this.onChangeProp = this.onChangeProp.bind(this);
     }
 
     downloadArquivoOrcamento( orcamento ) {
@@ -70,6 +81,11 @@ class CompraDialog extends Component {
             } , response => alert(JSON.stringify(response)));
         }
     };
+
+    onChangeProp(prop,evt) {
+        //TODO: AJAX
+        this.props.onPropChange(prop,evt);
+    }
 
     render() {
         if (this.props.compra == null) {
@@ -160,42 +176,52 @@ class CompraDialog extends Component {
             </Column>
         }
 
+
+        const tipoSolicitacaoOptions = this.state.tiposSolicitacao === undefined ? [] : this.state.tiposSolicitacao.map( t => {
+            return {id:t.id,name:t.descricao};
+        } );
+        const tipoDespesaOptions = this.state.tiposDespesa === undefined ? [] : this.state.tiposDespesa.map( t => {
+            return {id:t.id,name:t.descricao};
+        } );
+        const snOptions = [ {id:'s',name:'Sim'} , {id:'n',name:'Não'} ];
+        const infoGerais = [
+            {label:  'Solicitante', value: compra.usuario.fullName, locked: true},
+            {label:  'Estado da Tramitação', value: compra.estado.descricao, type:'select', locked: true},
+            {label:  'Compra via', value: compra.tipoSolicitacao.descricao , type: 'select', values:tipoSolicitacaoOptions},
+            {label:  'Despesa com', value: compra.tipoDespesa.descricao , type: 'select', values:tipoDespesaOptions},
+            {label:  'Despesa recorrente', value: compra.despesaRecorrente ? "s" : "n", type: 'select',values: snOptions},
+            {label:  'Quantidade', value: compra.quantidade , mask:'000000'},
+            {label:  'Marca / Modelo de referência', value: compra.modelo}
+        ];
         return <div className={'px-3'}>
             {alert}
             <Card title={'Dados Gerais'}>
                 <Row>
-                    <Column>Solicitante:</Column>
-                    <Column>{compra.usuario.fullName}</Column>
+                {infoGerais.map( info => {
+                    return (
+                        <Column mdSize={'6'}>
+                            <SpanEditavel
+                                label={info.label}
+                                editPermission={(info.locked === undefined || !info.locked) && isOwner}
+                                value={info.value}
+                                mask={info.mask}
+                                type={info.type}
+                                values={info.values}
+                            />
+                        </Column>
+                    );
+                })}
                 </Row>
-                <Row>
-                    <Column>Estado da Tramitação:</Column>
-                    <Column>{compra.estado.descricao}</Column>
-                </Row>
-                <Row>
-                    <Column>Compra via:</Column>
-                    <Column>{compra.tipoSolicitacao.descricao}</Column>
-                </Row>
-                <Row>
-                    <Column>Despesa com:</Column>
-                    <Column>{compra.tipoDespesa.descricao}</Column>
-                </Row>
-                <Row>
-                    <Column>Despesa recorrente:</Column>
-                    <Column>{compra.despesaRecorrente ? "Sim" : "Não"}</Column>
-                </Row>
-                <Row>
-                    <Column>Quantidade:</Column>
-                    <Column>{compra.quantidade}</Column>
-                </Row>
+
                 {rowObs}
                 {rowOutroArq}
             </Card>
             <Card title={'Descrição'}>
                 <span>{compra.descricao}<br/></span>
-                <span>Marca / Modelo de referência: {compra.modelo}</span>
+
             </Card>
             <Card title={'Justificativa'}>
-                <span>{compra.justificativa}</span>
+                <SpanEditavel editPermission={isOwner} value={compra.justificativa} />
             </Card>
             <Card title={"Orcamentos"}>
                 {spanValorMedio}

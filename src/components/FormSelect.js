@@ -4,11 +4,16 @@ class FormSelect extends Component {
 
     render () {
         const name = this.props.name !== undefined ? this.props.name : 'select-nameless';
-        const title = this.props.title !== undefined ? this.props.title : name;
+        const title = this.props.title;
         const value = this.props.value !== undefined ? this.props.value : '';
         const onChange = this.props.onChange !== undefined ? this.props.onChange : null;
         const disabled = this.props.disabled !== undefined && this.props.disabled;
         const required = this.props.required !== undefined && this.props.required !== false;
+
+        const styleSelect = this.props.styleSelect !== undefined ? this.props.styleSelect : {};
+        const styleLabel = this.props.styleLabel !== undefined ? this.props.styleLabel : {};
+        const style = this.props.style !== undefined ? this.props.style : {};
+
         let warningMessage;
         if (this.props.warningMessage !== undefined) {
             warningMessage = this.props.warningMessage;
@@ -20,7 +25,7 @@ class FormSelect extends Component {
         /**
          * COMPONENTS
          */
-        const label = title !== undefined ? <label htmlFor={name}>{title}</label> : null;
+        const label = title !== undefined ? <label style={styleLabel} htmlFor={name}>{title}</label> : null;
         const options = this.props.options.map( vl => {
             return <option value={vl.id}>{vl.name}</option>
         });
@@ -32,9 +37,10 @@ class FormSelect extends Component {
                             value={value}
                             className={'form-control'}
                             name={name}
+                            style={styleSelect}
                             id={selId} >
                             { options }
                         </select>;
-        return <div className={'form-group'}> {label} {select} </div>;
+        return <div style={style} className={'form-group'}> {label} {select} </div>;
     }
 } export default FormSelect;
