@@ -34,11 +34,24 @@ class ScreenViewCompras extends Component {
                 c.estado = JSON.parse(c.estado);
                 c.tipoDespesa = JSON.parse(c.tipoDespesa);
                 c.tipoSolicitacao = JSON.parse(c.tipoSolicitacao);
+                const fd = new FormData();
+                fd.append('id',c.id);
+                Request.get('/admctism/ajax/compras/validaarquivoscompra.php', fd, ({data}) => {
+                    debugger;
+                    if (!data.valid) {
+                        this.setState( prev => {
+                            let warnings = prev.comprasWarnings;
+                            warnings = warnings.concat(c.id);
+                            return {comprasWarnings: warnings}
+                        })
+                    }
+                });
             });
             this.setState({compras:compras,loading:false});
         }, (err) => {
             window.alert(JSON.stringify(err));
-        })
+        });
+
     }
 
     constructor(props) {
@@ -46,7 +59,8 @@ class ScreenViewCompras extends Component {
         this.state = {
             loading: true,
             compras: [],
-            compraDialog: null
+            compraDialog: null,
+            comprasWarnings: []
         };
         this.excluiOrcamento=this.excluiOrcamento.bind(this);
         this.addOrcamento=this.addOrcamento.bind(this);
@@ -133,7 +147,14 @@ class ScreenViewCompras extends Component {
                     <CompraDialog addOrcamento={(compra,orcamento,message,success) => {this.addOrcamento(compra , orcamento , message , success)}} excluiOrcamento={ ( orcamento ) => this.excluiOrcamento(this.state.compraDialog,orcamento)} compra={this.state.compraDialog}/>
                 </Dialog>
                 <DataTable autoLayout={true} value={this.state.compras} paginator={true} paginator={true} rows={10} rowsPerPageOptions={[5,10,20]}>
-                    <Column field={'id'} header={'Código'} />
+                    <Column header={'Código'} body={ data => {
+                        const warning = this.state.comprasWarnings.includes(data.id);
+                        let warningIcon = null;
+                        if (warning) {
+                            warningIcon = <i style={{color:"orange"}} className="pi pi-exclamation-triangle"></i>;
+                        }
+                        return <span>{data.id}{warningIcon}</span>;
+                    }} />
                     <Column sortable={true} filter={true} filterMatchMode='custom' filterFunction={substrFilter} field={"usuario.fullName"}  header={'Solicitante'}/>
                     <Column sortable={true} filter={true} filterMatchMode='custom' filterFunction={substrFilter} field="descricao" header={'Descricao'}/>
                     <Column header={'Valor Médio'} body={(data) => {
