@@ -1,0 +1,20 @@
+.linkAddGrupo {
+    color: #5ab7ff;
+    cursor: pointer;
+}
+
+.listUser {
+    padding: 2px;
+    cursor: pointer;
+    padding: 3px;
+}
+
+.listUser:nth-child(odd) {
+    background-color: #9fd1ff;
+}
+
+.selectedUser {
+    font-weight: bolder;
+    border: 3px dashed black;
+    padding: 0;
+}

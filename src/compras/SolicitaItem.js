@@ -54,7 +54,13 @@ class SolicitaItem extends Component {
             let disabled = this.state.disabled[orc_idx-1] !== undefined && this.state.disabled[orc_idx-1]
             //se nao eh o primeiro e se o anterior nao esta preenchido
             disabled = disabled || (orc_idx > 0 && (orcamentos[orc_idx-1].vl_orcamento === undefined || orcamentos[orc_idx-1].vl_orcamento.length === 0 || orcamentos[orc_idx-1].arq_orcamento === undefined || orcamentos[orc_idx-1].arq_orcamento.length === 0))
-            this.setState( prev => { disabled : prev.disabled.map( (mapItem,mapIdx) => mapIdx === orc_idx ? mapItem : disabled ) } );
+            this.setState( prev => {
+                disabled : prev.disabled.map( (mapItem,mapIdx) => {
+                    return mapIdx === orc_idx ?
+                        mapItem :
+                        disabled
+                } )
+            } );
 
             //COMPONENTES
             const spanNumOrcamento = <span>Orcamento #{orc_idx+1} </span>;

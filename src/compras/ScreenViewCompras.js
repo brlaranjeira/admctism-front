@@ -3,15 +3,12 @@ import Request from '../utils/Request';
 import AdmctismTopBar from '../components/AdmctismTopBar';
 import Row from "../components/Row";
 
-import FormSelect from "../components/FormSelect";
 import {DataTable} from 'primereact/datatable';
 import {ProgressSpinner} from 'primereact/progressspinner';
-import {Button} from 'primereact/button';
 import {SplitButton} from 'primereact/splitbutton';
 import {Column} from "primereact/column";
 import {Dialog} from 'primereact/dialog';
 
-import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css'
 
 import 'primereact/resources/themes/nova-light/theme.css';
@@ -109,7 +106,7 @@ class ScreenViewCompras extends Component {
     deletaCompra ( compra ) {
         const user = JWT.getPayload();
         const owner = compra.usuario;
-        if (owner.uid == user.username) {
+        if (owner.uid === user.username) {
             if (window.confirm('Tem certeza? Esta ação não poderá ser desfeita')) {
                 const data = new FormData();
                 data.append('compra',compra.id);
@@ -137,7 +134,7 @@ class ScreenViewCompras extends Component {
                     <div onClick={() => this.setState({mensagem:undefined})} ><i className="clickable fas fa-times"></i></div>
                 </div>
                 <hr/>
-                { Array.isArray(this.state.mensagem.text) && this.state.mensagem.text.map( m => <p>{m}</p> ) || this.state.mensagem.text }
+                { ( Array.isArray(this.state.mensagem.text) && this.state.mensagem.text.map( m => <p>{m}</p> ) ) || this.state.mensagem.text }
             </Alert>;
         }
         let content = <ProgressSpinner/>;
@@ -146,7 +143,7 @@ class ScreenViewCompras extends Component {
                 <Dialog style={{width:'80%'}} onHide={() => this.setState({compraDialog:null})} visible={this.state.compraDialog != null} header={'Detalhes da Compra #' + (this.state.compraDialog !== null ? this.state.compraDialog.id : '' )} modal={true}>
                     <CompraDialog addOrcamento={(compra,orcamento,message,success) => {this.addOrcamento(compra , orcamento , message , success)}} excluiOrcamento={ ( orcamento ) => this.excluiOrcamento(this.state.compraDialog,orcamento)} compra={this.state.compraDialog}/>
                 </Dialog>
-                <DataTable autoLayout={true} value={this.state.compras} paginator={true} paginator={true} rows={10} rowsPerPageOptions={[5,10,20]}>
+                <DataTable autoLayout={true} value={this.state.compras} paginator={true} rows={10} rowsPerPageOptions={[5,10,20]}>
                     <Column header={'Código'} body={ data => {
                         const warning = this.state.comprasWarnings.includes(data.id);
                         let warningIcon = null;
@@ -165,10 +162,12 @@ class ScreenViewCompras extends Component {
                     }} />
                     <Column field="estado.descricao" header={'Status'}/>
                     <Column body={(data,col) => {
+                        const user = JWT.getPayload();
+                        const canEdit = user.username === data.usuario.uid || user.username === 'ssi' || user.username === 'marcelotm';
                         const buttons = [
                             {label: 'Detalhes',command: () => this.setState({compraDialog:data})},
                         ];
-                        if (JWT.getPayload().username === data.usuario.uid) {
+                        if (canEdit) {
                             buttons.push({label: 'Excluir',command: () => this.deletaCompra(data)});
                         }
                         return <SplitButton label={'Ações'} model={buttons}/>

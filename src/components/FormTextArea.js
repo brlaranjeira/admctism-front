@@ -2,9 +2,18 @@ import React, {Component} from 'react';
 
 class FormTextArea extends Component {
 
+
+    //numero sequencial para nomear componentes sem propriedade name
+    static idNum = 0;
+    static getNextIdNum() {
+        const ret = FormTextArea.idNum;
+        FormTextArea.idNum++;
+        return ret;
+    }
+
     render () {
 
-        const name = this.props.name !== undefined ? this.props.name : 'textarea-nameless';
+        const name = this.props.name !== undefined ? this.props.name : 'textarea-'+FormTextArea.getNextIdNum().toString();
         const title = this.props.title;
         const value = this.props.value !== undefined ? this.props.value : '';
         const onChange = this.props.onChange !== undefined ? this.props.onChange : null;

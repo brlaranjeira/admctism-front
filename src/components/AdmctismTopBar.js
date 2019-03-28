@@ -8,16 +8,16 @@ class AdmctismTopBar extends Component {
     constructor(props) {
         super(props);
         this.logoutBtn=this.logoutBtn.bind(this);
-        this.itens = [
-            {
-                label: 'Compras',
-                items: [
-                    {label: 'Solicitar', url: '/compras/solicita' },
-                    {label: 'Visualizar', url: '/compras/all'}
-                ]
-            }
-
-        ]
+        this.itens = [{
+            label: 'Compras',
+            items: [
+                {label: 'Solicitar', url: '/compras/solicita' },
+                {label: 'Visualizar', url: '/compras/all'}
+            ]}, {label: 'Usuários',
+            items: [
+                {label: 'Permissões', url: '/usuarios/grupos'}
+            ]
+        }]
     }
     logoutBtn = () => {
         JWT.logout();

@@ -130,8 +130,6 @@ class ScreenSolicitaCompra extends Component {
                     map[k] = map[k] !== undefined ? map[k] + 1 : 0;
                     let elements = document.getElementsByName(k);
                     elements = [...elements].filter( n => n.value.length > 0 );
-                    const element = elements[map[k]];
-                    debugger;
                     v = elements[map[k]].files[0];
                 }
                 fd.append(k,v);
@@ -210,7 +208,7 @@ class ScreenSolicitaCompra extends Component {
                     <div onClick={() => this.setState({mensagem:undefined})} ><i className="clickable fas fa-times"></i></div>
                 </div>
                 <hr/>
-                { Array.isArray(this.state.mensagem.text) && this.state.mensagem.text.map( m => <p>{m}</p> ) || this.state.mensagem.text }
+                { (Array.isArray(this.state.mensagem.text) && this.state.mensagem.text.map( m => <p>{m}</p> )) || this.state.mensagem.text }
             </Alert>;
         }
         let codProjContainer;
