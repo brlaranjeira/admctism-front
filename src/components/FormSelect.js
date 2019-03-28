@@ -2,9 +2,17 @@ import React, {Component} from 'react';
 
 class FormSelect extends Component {
 
+    //numero sequencial para nomear componentes sem propriedade name
+    static idNum = 0;
+    static getNextIdNum() {
+        const ret = FormSelect.idNum;
+        FormSelect.idNum++;
+        return ret;
+    }
+
     render () {
-        const name = this.props.name !== undefined ? this.props.name : 'select-nameless';
-        const title = this.props.title;
+        const name = this.props.name !== undefined ? this.props.name : 'select-' + FormSelect.getNextIdNum().toString();
+        const title = this.props.title !== undefined ? this.props.title : name;
         const value = this.props.value !== undefined ? this.props.value : '';
         const onChange = this.props.onChange !== undefined ? this.props.onChange : null;
         const disabled = this.props.disabled !== undefined && this.props.disabled;

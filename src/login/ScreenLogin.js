@@ -1,10 +1,7 @@
 
 import React, { Component } from 'react';
 import FormInput from "../components/FormInput";
-import { Redirect } from 'react-router-dom';
 import Request from '../utils/Request';
-import JWT from "../utils/JWT";
-import axios from "axios";
 
 class ScreenLogin extends Component {
 

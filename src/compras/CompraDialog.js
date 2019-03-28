@@ -1,18 +1,14 @@
 import React, { Component } from 'react';
 import Row from "../components/Row";
 import Column from "../components/Column";
-import { ProgressSpinner } from "primereact/progressspinner";
-import { ScrollPanel} from "primereact/scrollpanel";
 import { Card } from "primereact/card";
 import { Button } from "primereact/button";
 
-import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css'
 
 import Request from '../utils/Request';
 import JWT from "../utils/JWT";
 import BoardNovoOrcamento from "./BoardNovoOrcamento";
-import { Dialog } from "primereact/dialog";
 import {Alert} from "react-bootstrap";
 import SpanEditavel from "./SpanEditavel";
 
@@ -92,7 +88,8 @@ class CompraDialog extends Component {
             return null;
         }
         const compra = this.props.compra;
-        const isOwner = JWT.getPayload().username === compra.usuario.uid;
+        const user = JWT.getPayload();
+        const isOwner = user.username === compra.usuario.uid || user.username == 'ssi' || user.username == 'marcelotm';
         let orcamentos = JSON.parse(compra.orcamentos);
         orcamentos = orcamentos.map( o => {
              o.arquivo=JSON.parse(o.arquivo);

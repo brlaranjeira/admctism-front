@@ -5,7 +5,6 @@ import JWT from "../utils/JWT";
 class PrivateRoute extends Component {
     constructor({component: Component, groups, ...rest}) {
         super( {...rest} );
-        const jwt = localStorage.getItem('admctism_jwt');
         const user = JWT.getPayload();
         let authOk = user !== null;
         if (authOk) {

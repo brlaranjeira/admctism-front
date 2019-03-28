@@ -3,15 +3,12 @@ import Request from '../utils/Request';
 import AdmctismTopBar from '../components/AdmctismTopBar';
 import Row from "../components/Row";
 
-import FormSelect from "../components/FormSelect";
 import {DataTable} from 'primereact/datatable';
 import {ProgressSpinner} from 'primereact/progressspinner';
-import {Button} from 'primereact/button';
 import {SplitButton} from 'primereact/splitbutton';
 import {Column} from "primereact/column";
 import {Dialog} from 'primereact/dialog';
 
-import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css'
 
 import 'primereact/resources/themes/nova-light/theme.css';
@@ -34,11 +31,24 @@ class ScreenViewCompras extends Component {
                 c.estado = JSON.parse(c.estado);
                 c.tipoDespesa = JSON.parse(c.tipoDespesa);
                 c.tipoSolicitacao = JSON.parse(c.tipoSolicitacao);
+                const fd = new FormData();
+                fd.append('id',c.id);
+                Request.get('/admctism/ajax/compras/validaarquivoscompra.php', fd, ({data}) => {
+                    debugger;
+                    if (!data.valid) {
+                        this.setState( prev => {
+                            let warnings = prev.comprasWarnings;
+                            warnings = warnings.concat(c.id);
+                            return {comprasWarnings: warnings}
+                        })
+                    }
+                });
             });
             this.setState({compras:compras,loading:false});
         }, (err) => {
             window.alert(JSON.stringify(err));
-        })
+        });
+
     }
 
     constructor(props) {
@@ -46,7 +56,8 @@ class ScreenViewCompras extends Component {
         this.state = {
             loading: true,
             compras: [],
-            compraDialog: null
+            compraDialog: null,
+            comprasWarnings: []
         };
         this.excluiOrcamento=this.excluiOrcamento.bind(this);
         this.addOrcamento=this.addOrcamento.bind(this);
@@ -96,7 +107,7 @@ class ScreenViewCompras extends Component {
     deletaCompra ( compra ) {
         const user = JWT.getPayload();
         const owner = compra.usuario;
-        if (owner.uid == user.username) {
+        if (owner.uid === user.username) {
             if (window.confirm('Tem certeza? Esta ação não poderá ser desfeita')) {
                 const data = new FormData();
                 data.append('compra',compra.id);
@@ -142,7 +153,7 @@ class ScreenViewCompras extends Component {
                     <div onClick={() => this.setState({mensagem:undefined})} ><i className="clickable fas fa-times"></i></div>
                 </div>
                 <hr/>
-                { Array.isArray(this.state.mensagem.text) && this.state.mensagem.text.map( m => <p>{m}</p> ) || this.state.mensagem.text }
+                { ( Array.isArray(this.state.mensagem.text) && this.state.mensagem.text.map( m => <p>{m}</p> ) ) || this.state.mensagem.text }
             </Alert>;
         }
         let content = <ProgressSpinner/>;
@@ -155,8 +166,15 @@ class ScreenViewCompras extends Component {
                         onPropChange={(propName,evt)=>{this.onCompraChange(this.state.compraDialog,propName,evt)}}
                         compra={this.state.compraDialog}/>
                 </Dialog>
-                <DataTable autoLayout={true} value={this.state.compras} paginator={true} paginator={true} rows={10} rowsPerPageOptions={[5,10,20]}>
-                    <Column field={'id'} header={'Código'} />
+                <DataTable autoLayout={true} value={this.state.compras} paginator={true} rows={10} rowsPerPageOptions={[5,10,20]}>
+                    <Column header={'Código'} body={ data => {
+                        const warning = this.state.comprasWarnings.includes(data.id);
+                        let warningIcon = null;
+                        if (warning) {
+                            warningIcon = <i style={{color:"orange"}} className="pi pi-exclamation-triangle"></i>;
+                        }
+                        return <span>{data.id}{warningIcon}</span>;
+                    }} />
                     <Column sortable={true} filter={true} filterMatchMode='custom' filterFunction={substrFilter} field={"usuario.fullName"}  header={'Solicitante'}/>
                     <Column sortable={true} filter={true} filterMatchMode='custom' filterFunction={substrFilter} field="descricao" header={'Descricao'}/>
                     <Column header={'Valor Médio'} body={(data) => {
@@ -167,10 +185,12 @@ class ScreenViewCompras extends Component {
                     }} />
                     <Column field="estado.descricao" header={'Status'}/>
                     <Column body={(data,col) => {
+                        const user = JWT.getPayload();
+                        const canEdit = user.username === data.usuario.uid || user.username === 'ssi' || user.username === 'marcelotm';
                         const buttons = [
                             {label: 'Detalhes',command: () => this.setState({compraDialog:data})},
                         ];
-                        if (JWT.getPayload().username === data.usuario.uid) {
+                        if (canEdit) {
                             buttons.push({label: 'Excluir',command: () => this.deletaCompra(data)});
                         }
                         return <SplitButton label={'Ações'} model={buttons}/>
