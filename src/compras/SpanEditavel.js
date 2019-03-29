@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import {Button} from "primereact/button";
 import FormInput from "../components/FormInput";
 import FormSelect from "../components/FormSelect";
+import FormTextArea from "../components/FormTextArea";
 
 class SpanEditavel extends Component {
 
@@ -16,16 +17,28 @@ class SpanEditavel extends Component {
         this.values = this.props.values !== undefined ? this.props.values : [];
         this.toggleEdicao = this.toggleEdicao.bind(this);
         this.onChangeValue = this.onChangeValue.bind(this);
+        this.cancelEdicao= this.cancelEdicao.bind(this);
+    }
+
+    cancelEdicao () {
+        this.setState(prev => {
+            return {
+                value: prev.oldValue,
+                editando: false
+            }
+        });
     }
 
     toggleEdicao () {
         this.setState( prev => {
-            return {editando: !prev.editando}
+            return {
+                editando: !prev.editando,
+                oldValue: prev.value
+            }
         } );
     }
 
     onChangeValue (e) {
-        debugger;
         this.setState({value:e.target.value});
     }
 
@@ -55,7 +68,8 @@ class SpanEditavel extends Component {
         let value = this.state.value !== undefined ? this.state.value : "";
         const canEdit = this.props.editPermission !== undefined ? this.props.editPermission : false;
 
-        let botao = null;
+        let botaoToggle = null;
+        let botaoCancel = null;
         let textField;
         if ( !this.state.editando ) {
             if (this.type.toLowerCase() === 'select') {
@@ -71,23 +85,26 @@ class SpanEditavel extends Component {
                     textField = <FormInput style={{width:'100%'}} value={value} onChange={ e => this.onChangeValue(e)} />
                     break;
                 case 'select':
-                    textField = <FormSelect style={{width:'100%'}} value={value} options={this.values} onChange={ e => this.onChangeValue(e)} />
+                    textField = <FormSelect style={{width:'100%'}} value={value} onChange={ e => this.onChangeValue(e)} options={this.values} />
+                    break;
+                case 'textarea':
+                    textField = <FormTextArea cols={this.props.cols} style={{width:'100%'}} value={value} onChange={ e => this.onChangeValue(e)} />
+                    break;
             }
         }
 
         if ( canEdit ) {
             const btnClass = (this.state.editando ? "p-button-success" : "p-button-info");
             const btnIcon = this.state.editando ? 'pi pi-check' : 'pi pi-pencil';
-            botao = <Button onClick={() => this.toggleEdicao()} icon={btnIcon} style={{width:'35px',height:'35px'}} className={btnClass}/>;
+            botaoToggle = <Button onClick={() => this.toggleEdicao()} icon={btnIcon} style={{width:'35px',border:'1px solid #ccc'}} className={btnClass}/>;
             if ( this.state.editando ) {
-
-
+                botaoCancel = <Button onClick={this.cancelEdicao} icon={'pi pi-trash'}  style={{width:'35px', border:'1px solid #ccc'}} className={'p-button-secondary'}/>
             }
         }
 
         let copyButton = null;
         if ( !this.state.editando ) {
-            copyButton = <Button onClick={() => {this.copyToClipboard(value)}} title='Copiar para área de transferência' icon={'pi pi-copy'} style={{width:'35px',height:'35px', border:'1px solid #ccc'}} className='p-button-secondary'/>;
+            copyButton = <Button onClick={() => {this.copyToClipboard(value)}} title='Copiar para área de transferência' icon={'pi pi-copy'} style={{width:'35px', border:'1px solid #ccc'}} className='p-button-secondary'/>;
         }
 
 
@@ -96,7 +113,8 @@ class SpanEditavel extends Component {
                 <span>{this.label}</span>
                 <div style={{ width : '100%' }} className='p-inputgroup'>
                     { textField }
-                    { botao }
+                    { botaoCancel }
+                    { botaoToggle }
                     { copyButton }
                 </div>
             </div>

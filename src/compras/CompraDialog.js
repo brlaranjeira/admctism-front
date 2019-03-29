@@ -17,22 +17,50 @@ class CompraDialog extends Component {
 
     componentDidMount() {
         Request.get('/admctism/ajax/compras/gettipossolicitacao.php',new FormData(), ({data}) => {
-            this.setState({tiposSolicitacao: JSON.parse(data.tipos)});
+            this.setState(() => {
+                return {tiposSolicitacao: JSON.parse(data.tipos).map( t => {
+                        return {
+                            id:t.id,
+                            name:t.descricao
+                        }
+                    })}
+            });
         });
         Request.get('/admctism/ajax/compras/gettiposdespesa.php',new FormData(), ({data}) => {
-            this.setState({tiposDespesa: JSON.parse(data.tipos)});
+            this.setState({tiposDespesa: JSON.parse(data.tipos).map( t => {
+                    return {
+                        id:t.id,
+                        name:t.descricao
+                    }
+                })});
         });
+    }
+
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        if ((prevProps.compra === null && this.props.compra !== null) || ( prevProps.compra !== null && this.props.compra !== null && prevProps.compra.id !== this.props.compra.id )) {
+            const user = JWT.getPayload();
+            debugger;
+            this.setState({
+                canEdit: JSON.parse(user.grupo).admin || user.username === this.props.compra.usuario
+            });
+        }
     }
 
     constructor(props) {
         super(props);
-        this.state={};
+
+        this.state={
+            tiposDespesa:[{id:-1,name:'Carregando...'}],
+            tiposSolicitacao:[{id:-1,name:'Carregando...'}],
+            canEdit: false
+        };
         this.downloadArquivoOrcamento = this.downloadArquivoOrcamento.bind(this);
         this.downloadArquivoCompra = this.downloadArquivoCompra.bind(this);
         this.showMessage = this.showMessage.bind(this);
         this.addOrcamento = this.addOrcamento.bind(this);
         this.excluiOrcamento = this.excluiOrcamento.bind(this);
         this.onChangeProp = this.onChangeProp.bind(this);
+
     }
 
     downloadArquivoOrcamento( orcamento ) {
@@ -72,7 +100,6 @@ class CompraDialog extends Component {
             fd.append('orcamento',orcamento.id);
             Request.post('/admctism/ajax/compras/deleteorcamento.php',fd,response => {
                 this.showMessage(response.data.message);
-                debugger;
                 this.props.excluiOrcamento(orcamento);
             } , response => alert(JSON.stringify(response)));
         }
@@ -89,7 +116,6 @@ class CompraDialog extends Component {
         }
         const compra = this.props.compra;
         const user = JWT.getPayload();
-        const isOwner = user.username === compra.usuario.uid || user.username == 'ssi' || user.username == 'marcelotm';
         let orcamentos = JSON.parse(compra.orcamentos);
         orcamentos = orcamentos.map( o => {
              o.arquivo=JSON.parse(o.arquivo);
@@ -125,7 +151,7 @@ class CompraDialog extends Component {
                 .map(o => Number.parseFloat(o.valor))
                 .reduce((acc, curr) => acc + curr,0);
             avg /= orcamentos.length;
-            spanValorMedio = <span>Valor médio: R${avg.toFixed(2)}</span>;
+            spanValorMedio = <SpanEditavel editPermission={false} label={'Valor Médio (R$)'} value={avg.toFixed(2)}/>;
         }
 
         let alert;
@@ -148,7 +174,7 @@ class CompraDialog extends Component {
                     <div style={{width:'95%'}} className={'d-flex justify-content-between '}>
                         <span>Orcamento #{(idx+1)}</span>
                         {
-                            isOwner
+                            this.state.canEdit
                                 ? <span><i onClick={() => this.excluiOrcamento(o)} style={{cursor: 'pointer', color: 'red'}} className="pi pi-trash"></i></span>
                                 : null
                         }
@@ -165,7 +191,7 @@ class CompraDialog extends Component {
         });
 
         let boardNovoOrcamento;
-        if (orcamentos.length >= 3 || !isOwner ) {
+        if (orcamentos.length >= 3 || !this.state.canEdit ) {
             boardNovoOrcamento = null;
         } else  {
             boardNovoOrcamento = <Column size={'4'}>
@@ -174,18 +200,12 @@ class CompraDialog extends Component {
         }
 
 
-        const tipoSolicitacaoOptions = this.state.tiposSolicitacao === undefined ? [] : this.state.tiposSolicitacao.map( t => {
-            return {id:t.id,name:t.descricao};
-        } );
-        const tipoDespesaOptions = this.state.tiposDespesa === undefined ? [] : this.state.tiposDespesa.map( t => {
-            return {id:t.id,name:t.descricao};
-        } );
         const snOptions = [ {id:'s',name:'Sim'} , {id:'n',name:'Não'} ];
         const infoGerais = [
             {label:  'Solicitante', value: compra.usuario.fullName, locked: true},
             {label:  'Estado da Tramitação', value: compra.estado.descricao, type:'select', locked: true},
-            {label:  'Compra via', value: compra.tipoSolicitacao.descricao , type: 'select', values:tipoSolicitacaoOptions},
-            {label:  'Despesa com', value: compra.tipoDespesa.descricao , type: 'select', values:tipoDespesaOptions},
+            {label:  'Compra via', value: compra.tipoSolicitacao.descricao , type: 'select', values:this.state.tiposSolicitacao},
+            {label:  'Despesa com', value: compra.tipoDespesa.descricao , type: 'select', values:this.state.tiposDespesa},
             {label:  'Despesa recorrente', value: compra.despesaRecorrente ? "s" : "n", type: 'select',values: snOptions},
             {label:  'Quantidade', value: compra.quantidade , mask:'000000'},
             {label:  'Marca / Modelo de referência', value: compra.modelo}
@@ -199,7 +219,7 @@ class CompraDialog extends Component {
                         <Column mdSize={'6'}>
                             <SpanEditavel
                                 label={info.label}
-                                editPermission={(info.locked === undefined || !info.locked) && isOwner}
+                                editPermission={(info.locked === undefined || !info.locked) && this.state.canEdit}
                                 value={info.value}
                                 mask={info.mask}
                                 type={info.type}
@@ -214,11 +234,10 @@ class CompraDialog extends Component {
                 {rowOutroArq}
             </Card>
             <Card title={'Descrição'}>
-                <span>{compra.descricao}<br/></span>
-
+                <SpanEditavel type={'textarea'} cols={150}  editPermission={this.state.canEdit} value={compra.descricao}/>
             </Card>
             <Card title={'Justificativa'}>
-                <SpanEditavel editPermission={isOwner} value={compra.justificativa} />
+                <SpanEditavel type={'textarea'} cols={150} editPermission={this.state.canEdit} value={compra.justificativa} />
             </Card>
             <Card title={"Orcamentos"}>
                 {spanValorMedio}

@@ -12,7 +12,7 @@ class FormSelect extends Component {
 
     render () {
         const name = this.props.name !== undefined ? this.props.name : 'select-' + FormSelect.getNextIdNum().toString();
-        const title = this.props.title !== undefined ? this.props.title : name;
+        const title = this.props.title;
         const value = this.props.value !== undefined ? this.props.value : '';
         const onChange = this.props.onChange !== undefined ? this.props.onChange : null;
         const disabled = this.props.disabled !== undefined && this.props.disabled;

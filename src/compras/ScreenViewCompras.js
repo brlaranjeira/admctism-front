@@ -26,23 +26,21 @@ class ScreenViewCompras extends Component {
     componentDidMount() {
         Request.get('/admctism/ajax/compras/getall.php',new FormData(), ({data}) => {
             const compras = JSON.parse(data.compras);
+            Request.get('/admctism/ajax/compras/validaarquivoscompra.php', new FormData(), ({data}) => {
+                this.setState({comprasWarnings: JSON.parse(data.witherror)});
+                /*if (!data.valid) {
+                    this.setState( prev => {
+                        let warnings = prev.comprasWarnings;
+                        warnings = warnings.concat(c.id);
+                        return {comprasWarnings: warnings}
+                    })
+                }*/
+            });
             compras.forEach(c => {
                 c.usuario = JSON.parse(c.usuario);
                 c.estado = JSON.parse(c.estado);
                 c.tipoDespesa = JSON.parse(c.tipoDespesa);
                 c.tipoSolicitacao = JSON.parse(c.tipoSolicitacao);
-                const fd = new FormData();
-                fd.append('id',c.id);
-                Request.get('/admctism/ajax/compras/validaarquivoscompra.php', fd, ({data}) => {
-                    debugger;
-                    if (!data.valid) {
-                        this.setState( prev => {
-                            let warnings = prev.comprasWarnings;
-                            warnings = warnings.concat(c.id);
-                            return {comprasWarnings: warnings}
-                        })
-                    }
-                });
             });
             this.setState({compras:compras,loading:false});
         }, (err) => {
@@ -77,10 +75,8 @@ class ScreenViewCompras extends Component {
 
     excluiOrcamento ( compra , orcamento ) {
         this.setState( prev => {
-            debugger;
             const orcamentos = JSON.stringify(JSON.parse(compra.orcamentos).filter( orc => orc.id !== orcamento.id ));
             compra.orcamentos = orcamentos;
-            debugger;
             const compras = prev.compras.map( c => c.id !== compra.id ? c : compra );
             return {compras: compras}
         } );
@@ -159,7 +155,7 @@ class ScreenViewCompras extends Component {
         let content = <ProgressSpinner/>;
         if (!this.state.loading) {
             content = <div className='content-section implementation'>
-                <Dialog style={{width:'80%'}} onHide={() => this.setState({compraDialog:null})} visible={this.state.compraDialog != null} header={'Detalhes da Compra #' + (this.state.compraDialog !== null ? this.state.compraDialog.id : '' )} modal={true}>
+                <Dialog style={{width:'80%', height: '95%', overflowY: 'scroll'}} onHide={() => this.setState({compraDialog:null})} visible={this.state.compraDialog != null} header={'Detalhes da Compra #' + (this.state.compraDialog !== null ? this.state.compraDialog.id : '' )} modal={true}>
                     <CompraDialog
                         addOrcamento={(compra,orcamento,message,success) => {this.addOrcamento(compra , orcamento , message , success)}}
                         excluiOrcamento={ ( orcamento ) => this.excluiOrcamento(this.state.compraDialog,orcamento)}
@@ -168,7 +164,7 @@ class ScreenViewCompras extends Component {
                 </Dialog>
                 <DataTable autoLayout={true} value={this.state.compras} paginator={true} rows={10} rowsPerPageOptions={[5,10,20]}>
                     <Column header={'Código'} body={ data => {
-                        const warning = this.state.comprasWarnings.includes(data.id);
+                        const warning = this.state.comprasWarnings.includes(Number.parseInt(data.id));
                         let warningIcon = null;
                         if (warning) {
                             warningIcon = <i style={{color:"orange"}} className="pi pi-exclamation-triangle"></i>;
