@@ -32,6 +32,7 @@ class ScreenManageGrupos extends Component {
         this.changeAdmin=this.changeAdmin.bind(this);
         this.showMessage=this.showMessage.bind(this);
         this.addGrupo=this.addGrupo.bind(this);
+        this.loadGrupos=this.loadGrupos.bind(this);
     }
 
     onSelectNode (param) {
@@ -67,6 +68,10 @@ class ScreenManageGrupos extends Component {
     }
 
     componentDidMount() {
+        this.loadGrupos()
+    }
+
+    loadGrupos() {
         const fd = new FormData();
         Request.get('/admctism/ajax/user/getgrupos.php',fd,({data}) => {
             const grupos = data.grupos.map( g => JSON.parse( g ) );
@@ -118,6 +123,7 @@ class ScreenManageGrupos extends Component {
         fd.append('admin',this.state.novoGrupoAdmin);
         fd.append('parent',-this.state.selectedNode);
         Request.post('/admctism/ajax/user/addgrupo.php',fd,({data}) => {
+            this.loadGrupos();
             this.showMessage(data.message);
         });
     }
