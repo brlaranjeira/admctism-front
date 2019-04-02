@@ -63,7 +63,6 @@ class ScreenManageGrupos extends Component {
             grupoSelecionado.admin = valor ? '1' : '';
             return {grupoSelecionado: grupoSelecionado};
         }, () => {
-            debugger;
         })
     }
 
@@ -125,6 +124,7 @@ class ScreenManageGrupos extends Component {
         Request.post('/admctism/ajax/user/addgrupo.php',fd,({data}) => {
             this.loadGrupos();
             this.showMessage(data.message);
+            this.setState( {selectedNode: null} );
         });
     }
 
@@ -141,7 +141,6 @@ class ScreenManageGrupos extends Component {
                 dialogHeader = 'Novo Grupo';
             } else if (this.state.selectedNode < 0) {
                 const seek = -this.state.selectedNode;
-                debugger;
                 const superGrupo = this.getGrupo(seek,this.state.grupos);
                 dialogHeader = 'Novo Subgrupo de ' + superGrupo.nome;
             }

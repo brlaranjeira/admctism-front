@@ -32,7 +32,7 @@ class CompraDialog extends Component {
                         id:t.id,
                         name:t.descricao
                     }
-                })});
+            })});
         });
     }
 
@@ -41,7 +41,7 @@ class CompraDialog extends Component {
             const user = JWT.getPayload();
             debugger;
             this.setState({
-                canEdit: JSON.parse(user.grupo).admin || user.username === this.props.compra.usuario
+                canEdit: JSON.parse(user.grupo).admin || user.username === this.props.compra.usuario.login
             });
         }
     }
@@ -202,7 +202,7 @@ class CompraDialog extends Component {
 
         const snOptions = [ {id:'s',name:'Sim'} , {id:'n',name:'Não'} ];
         const infoGerais = [
-            {label:  'Solicitante', value: compra.usuario.fullName, locked: true},
+            {label:  'Solicitante', value: compra.usuario.nome, locked: true},
             {label:  'Estado da Tramitação', value: compra.estado.descricao, type:'select', locked: true},
             {label:  'Compra via', value: compra.tipoSolicitacao.descricao , type: 'select', values:this.state.tiposSolicitacao},
             {label:  'Despesa com', value: compra.tipoDespesa.descricao , type: 'select', values:this.state.tiposDespesa},

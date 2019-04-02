@@ -26,15 +26,8 @@ class ScreenViewCompras extends Component {
     componentDidMount() {
         Request.get('/admctism/ajax/compras/getall.php',new FormData(), ({data}) => {
             const compras = JSON.parse(data.compras);
-            Request.get('/admctism/ajax/compras/validaarquivoscompra.php', new FormData(), ({data}) => {
-                this.setState({comprasWarnings: JSON.parse(data.witherror)});
-                /*if (!data.valid) {
-                    this.setState( prev => {
-                        let warnings = prev.comprasWarnings;
-                        warnings = warnings.concat(c.id);
-                        return {comprasWarnings: warnings}
-                    })
-                }*/
+            Request.get('/admctism/ajax/compras/validaarquivoscompra.php', new FormData(), ({validationData}) => {
+                this.setState({comprasWarnings: JSON.parse(validationData.witherror)});
             });
             compras.forEach(c => {
                 c.usuario = JSON.parse(c.usuario);
@@ -103,7 +96,7 @@ class ScreenViewCompras extends Component {
     deletaCompra ( compra ) {
         const user = JWT.getPayload();
         const owner = compra.usuario;
-        if (owner.uid === user.username) {
+        if (owner.id === user.id) {
             if (window.confirm('Tem certeza? Esta ação não poderá ser desfeita')) {
                 const data = new FormData();
                 data.append('compra',compra.id);
@@ -124,17 +117,14 @@ class ScreenViewCompras extends Component {
     onCompraChange( compra , propName , evt ) {
         const evtValue = evt.target.value;
         this.setState( prev => {
-            //const indice = prev.compras.findIndex(c => c.id === compraId);
             const compras = prev.compras.map( c => {
                 if (c.id === compra.id) {
                     c[propName] = evtValue;
                 }
                 return c;
             });
-            //const compra = compras[indice];
             return {
                 compras:compras,
-                //compraDialog: compra
             };
         });
     }
@@ -171,7 +161,7 @@ class ScreenViewCompras extends Component {
                         }
                         return <span>{data.id}{warningIcon}</span>;
                     }} />
-                    <Column sortable={true} filter={true} filterMatchMode='custom' filterFunction={substrFilter} field={"usuario.fullName"}  header={'Solicitante'}/>
+                    <Column sortable={true} filter={true} filterMatchMode='custom' filterFunction={substrFilter} field={"usuario.nome"}  header={'Solicitante'}/>
                     <Column sortable={true} filter={true} filterMatchMode='custom' filterFunction={substrFilter} field="descricao" header={'Descricao'}/>
                     <Column header={'Valor Médio'} body={(data) => {
                         const orcamentos = JSON.parse(data.orcamentos).map(o => Number.parseFloat(o.valor));
@@ -182,7 +172,7 @@ class ScreenViewCompras extends Component {
                     <Column field="estado.descricao" header={'Status'}/>
                     <Column body={(data,col) => {
                         const user = JWT.getPayload();
-                        const canEdit = user.username === data.usuario.uid || user.username === 'ssi' || user.username === 'marcelotm';
+                        const canEdit = JSON.parse(user.grupo).admin || user.username === data.usuario.login;
                         const buttons = [
                             {label: 'Detalhes',command: () => this.setState({compraDialog:data})},
                         ];

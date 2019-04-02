@@ -7,9 +7,9 @@ class PrivateRoute extends Component {
         super( {...rest} );
         const user = JWT.getPayload();
         let authOk = user !== null;
-        if (authOk) {
+        /*if (authOk) {
             authOk = groups === undefined || groups.filter( gr => user.grupos.includes(gr.toString()) ).length > 0;
-        }
+        }*/
         this.route = <Route {...rest} render={ ( props ) => {
             if (authOk) {
                 return <Component {...props} />
