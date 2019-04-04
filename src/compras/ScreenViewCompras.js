@@ -73,12 +73,6 @@ class ScreenViewCompras extends Component {
             const compras = prev.compras.map( c => c.id !== compra.id ? c : compra );
             return {compras: compras}
         } );
-        /*const idx = this.state.compras.findIndex( c => c.id === compra.id );
-        compra.orcamentos = JSON.stringify(JSON.parse(compra.orcamentos).filter(o => o.id != orcamento.id));
-        this.setState( (prev) => {
-            prev.compras[idx] = compra;
-            return prev;
-        } );*/
     }
 
     addOrcamento ( compra , orcamento , message , success) {
@@ -114,12 +108,11 @@ class ScreenViewCompras extends Component {
         }
     }
 
-    onCompraChange( compra , propName , evt ) {
-        const evtValue = evt.target.value;
+    onCompraChange( compra , propName, index , value ) {
         this.setState( prev => {
             const compras = prev.compras.map( c => {
                 if (c.id === compra.id) {
-                    c[propName] = evtValue;
+                    c[propName] = value;
                 }
                 return c;
             });
@@ -149,7 +142,7 @@ class ScreenViewCompras extends Component {
                     <CompraDialog
                         addOrcamento={(compra,orcamento,message,success) => {this.addOrcamento(compra , orcamento , message , success)}}
                         excluiOrcamento={ ( orcamento ) => this.excluiOrcamento(this.state.compraDialog,orcamento)}
-                        onPropChange={(propName,evt)=>{this.onCompraChange(this.state.compraDialog,propName,evt)}}
+                        onPropChange={(propName,idx,value)=>{this.onCompraChange(this.state.compraDialog,propName,idx,value)}}
                         compra={this.state.compraDialog}/>
                 </Dialog>
                 <DataTable autoLayout={true} value={this.state.compras} paginator={true} rows={10} rowsPerPageOptions={[5,10,20]}>

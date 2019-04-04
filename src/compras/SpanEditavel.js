@@ -15,6 +15,7 @@ class SpanEditavel extends Component {
         this.label = this.props.label !== undefined ? this.props.label : "";
         this.type = this.props.type !== undefined ? this.props.type : 'text';
         this.values = this.props.values !== undefined ? this.props.values : [];
+        this.onSave = this.props.onSave !== undefined ? this.props.onSave : ()=>{};
         this.toggleEdicao = this.toggleEdicao.bind(this);
         this.onChangeValue = this.onChangeValue.bind(this);
         this.cancelEdicao= this.cancelEdicao.bind(this);
@@ -31,6 +32,9 @@ class SpanEditavel extends Component {
 
     toggleEdicao () {
         this.setState( prev => {
+            if (prev.editando) {
+                this.onSave(prev.value);
+            }
             return {
                 editando: !prev.editando,
                 oldValue: prev.value
@@ -82,7 +86,7 @@ class SpanEditavel extends Component {
         } else {
             switch (this.type.toLowerCase()) {
                 case 'text':
-                    textField = <FormInput style={{width:'100%'}} value={value} onChange={ e => this.onChangeValue(e)} />
+                    textField = <FormInput mask={this.props.mask} style={{width:'100%'}} value={value} onChange={ e => this.onChangeValue(e)} />
                     break;
                 case 'select':
                     textField = <FormSelect style={{width:'100%'}} value={value} onChange={ e => this.onChangeValue(e)} options={this.values} />

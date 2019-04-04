@@ -39,7 +39,6 @@ class CompraDialog extends Component {
     componentDidUpdate(prevProps, prevState, snapshot) {
         if ((prevProps.compra === null && this.props.compra !== null) || ( prevProps.compra !== null && this.props.compra !== null && prevProps.compra.id !== this.props.compra.id )) {
             const user = JWT.getPayload();
-            debugger;
             this.setState({
                 canEdit: JSON.parse(user.grupo).admin || user.username === this.props.compra.usuario.login
             });
@@ -59,8 +58,7 @@ class CompraDialog extends Component {
         this.showMessage = this.showMessage.bind(this);
         this.addOrcamento = this.addOrcamento.bind(this);
         this.excluiOrcamento = this.excluiOrcamento.bind(this);
-        this.onChangeProp = this.onChangeProp.bind(this);
-
+        this.saveValue = this.saveValue.bind(this);
     }
 
     downloadArquivoOrcamento( orcamento ) {
@@ -105,9 +103,15 @@ class CompraDialog extends Component {
         }
     };
 
-    onChangeProp(prop,evt) {
-        //TODO: AJAX
-        this.props.onPropChange(prop,evt);
+    saveValue( prop , index , value ) {
+        const fd = new FormData();
+        fd.append('compra',this.props.compra.id);
+        fd.append('prop',prop);
+        fd.append('value',value);
+        Request.post('/admctism/ajax/compras/changeproperty.php', fd, ({data}) => {
+            this.showMessage(data.message);
+        } );
+        this.props.onPropChange(prop,index,value);
     }
 
     render() {
@@ -153,7 +157,6 @@ class CompraDialog extends Component {
             avg /= orcamentos.length;
             spanValorMedio = <SpanEditavel editPermission={false} label={'Valor Médio (R$)'} value={avg.toFixed(2)}/>;
         }
-
         let alert;
         if ( this.state.mensagem === undefined ) {
             alert = null;
@@ -180,8 +183,8 @@ class CompraDialog extends Component {
                         }
                     </div>
                     <div style={{width:'95%'}} className={'d-flex justify-content-between'}>
-                        <span>Valor</span>
-                        <strong> R$ {Number.parseFloat(o.valor).toFixed(2)} </strong>
+                        <SpanEditavel label={'Valor (R$)'} editPermission={this.state.canEdit} value={o.valor}
+                                      mask={'R0000000.00'} type={'text'}/>
                     </div>
                     <div>
                         <Button style={{width:'95%'}} onClick={() => this.downloadArquivoOrcamento(o)} label={'Download do Arquivo'}/>
@@ -200,15 +203,15 @@ class CompraDialog extends Component {
         }
 
 
-        const snOptions = [ {id:'s',name:'Sim'} , {id:'n',name:'Não'} ];
+        const snOptions = [ {id:'1',name:'Sim'} , {id:'0',name:'Não'} ];
         const infoGerais = [
             {label:  'Solicitante', value: compra.usuario.nome, locked: true},
-            {label:  'Estado da Tramitação', value: compra.estado.descricao, type:'select', locked: true},
-            {label:  'Compra via', value: compra.tipoSolicitacao.descricao , type: 'select', values:this.state.tiposSolicitacao},
-            {label:  'Despesa com', value: compra.tipoDespesa.descricao , type: 'select', values:this.state.tiposDespesa},
-            {label:  'Despesa recorrente', value: compra.despesaRecorrente ? "s" : "n", type: 'select',values: snOptions},
-            {label:  'Quantidade', value: compra.quantidade , mask:'000000'},
-            {label:  'Marca / Modelo de referência', value: compra.modelo}
+            {label:  'Estado da Tramitação', prop:'estado',value:compra.estado.id, type:'select', locked: true},
+            {label:  'Compra via', prop:'tipoSolicitacao', value:compra.tipoSolicitacao.id,  type: 'select', values:this.state.tiposSolicitacao},
+            {label:  'Despesa com', prop:'tipoDespesa', value:compra.tipoDespesa.id,  type: 'select', values:this.state.tiposDespesa},
+            {label:  'Despesa recorrente', prop:'despesaRecorrente', value:compra.despesaRecorrente ? "1" : "0", type: 'select',values: snOptions},
+            {label:  'Quantidade', prop:'quantidade', value: compra.quantidade , mask:'000000'},
+            {label:  'Marca / Modelo de referência', prop:'modelo', value: compra.modelo}
         ];
         return <div className={'px-3'}>
             {alert}
@@ -224,6 +227,7 @@ class CompraDialog extends Component {
                                 mask={info.mask}
                                 type={info.type}
                                 values={info.values}
+                                onSave={vl=>this.saveValue(info.prop,0,vl)}
                             />
                         </Column>
                     );
@@ -234,10 +238,10 @@ class CompraDialog extends Component {
                 {rowOutroArq}
             </Card>
             <Card title={'Descrição'}>
-                <SpanEditavel type={'textarea'} cols={150}  editPermission={this.state.canEdit} value={compra.descricao}/>
+                <SpanEditavel onSave={vl=>this.saveValue('descricao',0,vl)} type={'textarea'} cols={150}  editPermission={this.state.canEdit} value={compra.descricao}/>
             </Card>
             <Card title={'Justificativa'}>
-                <SpanEditavel type={'textarea'} cols={150} editPermission={this.state.canEdit} value={compra.justificativa} />
+                <SpanEditavel onSave={vl => this.saveValue('justificativa',0,vl)} type={'textarea'} cols={150} editPermission={this.state.canEdit} value={compra.justificativa} />
             </Card>
             <Card title={"Orcamentos"}>
                 {spanValorMedio}
